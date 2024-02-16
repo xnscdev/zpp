@@ -51,7 +51,7 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
   a.popScope();
 
   // TODO Insert automatic return from void functions
-  if (!block->getTerminator() || !llvm::isa<llvm::ReturnInst>(block->getTerminator()))
+  if (!block->getTerminator())
     throw ParserError("Missing return statement from function returning non-void");
 
   if (verifyFunction(*func, &llvm::errs()))

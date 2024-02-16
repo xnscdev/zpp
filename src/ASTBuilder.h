@@ -2,12 +2,12 @@
 #define ASTBUILDER_H
 
 #include "Scope.h"
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/PassManager.h>
+#include <deque>
 #include <llvm/Analysis/CGSCCPassManager.h>
 #include <llvm/Analysis/LoopAnalysisManager.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Passes/StandardInstrumentations.h>
-#include <deque>
 
 namespace zpp {
 class ASTBuilder {
