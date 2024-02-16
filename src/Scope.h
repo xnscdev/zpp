@@ -7,7 +7,8 @@
 namespace zpp {
 class Scope {
 public:
-  llvm::Value *lookupVariable(const std::string &name) const;
+  void declareVariable(const std::string &name, llvm::Value *value);
+  [[nodiscard]] llvm::Value *lookupVariable(const std::string &name) const;
 
 private:
   std::map<std::string, llvm::Value *> variables;
