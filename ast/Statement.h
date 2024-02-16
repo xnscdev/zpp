@@ -10,12 +10,14 @@ public:
   Statement(const Statement &) = delete;
   virtual ~Statement() = default;
   Statement &operator=(const Statement &) = delete;
+  virtual void codegen(ASTBuilder &a) const = 0;
 };
 
 class ExpressionStatement final : public Statement {
 public:
   explicit ExpressionStatement(std::unique_ptr<Expression> expr) : m_expr(std::move(expr)) {}
   [[nodiscard]] const Expression &expr() const { return *m_expr; }
+  void codegen(ASTBuilder &a) const override;
 
 private:
   std::unique_ptr<Expression> m_expr;
@@ -26,6 +28,7 @@ public:
   explicit ReturnStatement(std::unique_ptr<Expression> value) : m_value(std::move(value)) {}
   [[nodiscard]] bool hasValue() const { return m_value != nullptr; }
   [[nodiscard]] const Expression &value() const { return *m_value; }
+  void codegen(ASTBuilder &a) const override;
 
 private:
   std::unique_ptr<Expression> m_value;
@@ -33,9 +36,8 @@ private:
 
 class StatementBlock final : public Statement {
 public:
-  void addStatement(std::unique_ptr<Statement> statement) {
-    statements.push_back(std::move(statement));
-  }
+  void addStatement(std::unique_ptr<Statement> statement);
+  void codegen(ASTBuilder &a) const override;
 
 private:
   std::vector<std::unique_ptr<Statement>> statements;

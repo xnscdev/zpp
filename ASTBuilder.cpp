@@ -1,19 +1,12 @@
 #include "ASTBuilder.h"
-#include <fstream>
+#include "ParserError.h"
 
-void zpp::ASTBuilder::parse(const std::string &filename) {
-  std::ifstream file(filename);
-  if (!file.good())
-    throw std::runtime_error("Failed to open file");
-  parse(file);
-}
+#include <ranges>
 
-void zpp::ASTBuilder::parse(std::istream &is) {
-  if (!is.good())
-    return;
-  scanner = std::make_unique<Scanner>(&is);
-  std::unique_ptr<ast::Program> program;
-  parser = std::make_unique<Parser>(*scanner, program);
-  if (parser->parse())
-    throw std::runtime_error("Parsing failed");
+llvm::Value *zpp::ASTBuilder::getVariable(const std::string &name) const {
+  for (const auto &scope : std::ranges::reverse_view(scopes)) {
+    if (llvm::Value *val = scope.lookupVariable(name))
+      return val;
+  }
+  throw ParserError("Use of undeclared identifier: " + name);
 }

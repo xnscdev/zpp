@@ -23,13 +23,21 @@ add_executable(z++
         main.cpp
         ${FLEX_scanner_OUTPUTS}
         ${BISON_parser_OUTPUTS}
+        ast/Expression.cpp
+        ast/Expression.h
+        ast/Statement.cpp
+        ast/Statement.h
+        ast/Program.h
+        ast/Declaration.cpp
+        ast/Declaration.h
+        ParserError.h
         ZppScanner.h
         ASTBuilder.cpp
         ASTBuilder.h
-        ast/Expression.h
-        ast/Statement.h
-        ast/Program.h
-        ast/Declaration.h
+        Driver.cpp
+        Driver.h
+        Scope.cpp
+        Scope.h
 )
 
 llvm_map_components_to_libnames(llvm_libs native nativecodegen orcjit)
