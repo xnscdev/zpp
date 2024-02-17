@@ -7,7 +7,8 @@ void FunctionDeclaration::codegen(ASTBuilder &a) const {
   std::vector<llvm::Type *> types;
   for (const auto &[name, type] : params().list())
     types.push_back(type->resolve(a));
-  llvm::FunctionType *funcType = llvm::FunctionType::get(returnType().resolve(a), types, false);
+  llvm::FunctionType *funcType =
+      llvm::FunctionType::get(returnType().resolve(a), types, params().variadic());
 
   if (const llvm::Function *func = a.module().getFunction(name())) {
     if (func->getFunctionType() != funcType)
@@ -22,7 +23,8 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
   std::vector<llvm::Type *> types;
   for (const auto &[name, type] : params().list())
     types.push_back(type->resolve(a));
-  llvm::FunctionType *funcType = llvm::FunctionType::get(returnType().resolve(a), types, false);
+  llvm::FunctionType *funcType =
+      llvm::FunctionType::get(returnType().resolve(a), types, params().variadic());
 
   llvm::Function *func = a.module().getFunction(name());
   if (func) {

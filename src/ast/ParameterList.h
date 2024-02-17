@@ -16,8 +16,12 @@ public:
     return m_list;
   }
 
+  void markVariadic() { m_variadic = true; }
+  [[nodiscard]] bool variadic() const { return m_variadic; }
+
 private:
   std::vector<std::pair<std::string, std::unique_ptr<Type>>> m_list;
+  bool m_variadic;
   std::unordered_set<std::string> paramNames;
 };
 }

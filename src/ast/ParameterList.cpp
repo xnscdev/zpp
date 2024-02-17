@@ -3,7 +3,8 @@
 
 using namespace zpp::ast;
 
-ParameterList::ParameterList(const std::string &firstName, std::unique_ptr<Type> firstType) {
+ParameterList::ParameterList(const std::string &firstName, std::unique_ptr<Type> firstType)
+    : m_variadic(false) {
   addParameter(firstName, std::move(firstType));
 }
 
