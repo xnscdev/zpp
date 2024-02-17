@@ -15,6 +15,10 @@ add_executable(z++
         ast/Program.h
         ast/Declaration.cpp
         ast/Declaration.h
+        ast/Type.cpp
+        ast/Type.h
+        ast/ParameterList.cpp
+        ast/ParameterList.h
         ParserError.h
         ZppScanner.h
         ASTBuilder.cpp

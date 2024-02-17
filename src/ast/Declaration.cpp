@@ -7,10 +7,9 @@ using namespace zpp::ast;
 
 void FunctionDeclaration::codegen(ASTBuilder &a) const {
   std::vector<llvm::Type *> types;
-  for (std::size_t i = 0; i < params().size(); i++)
-    types.push_back(llvm::Type::getInt64Ty(a.context()));
-  llvm::FunctionType *funcType =
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(a.context()), types, false);
+  for (const auto &[name, type] : params().list())
+    types.push_back(type->resolve(a));
+  llvm::FunctionType *funcType = llvm::FunctionType::get(returnType().resolve(a), types, false);
 
   if (const llvm::Function *func = a.module().getFunction(name())) {
     if (func->getFunctionType() != funcType)
@@ -23,10 +22,9 @@ void FunctionDeclaration::codegen(ASTBuilder &a) const {
 
 void FunctionDefinition::codegen(ASTBuilder &a) const {
   std::vector<llvm::Type *> types;
-  for (std::size_t i = 0; i < params().size(); i++)
-    types.push_back(llvm::Type::getInt64Ty(a.context()));
-  llvm::FunctionType *funcType =
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(a.context()), types, false);
+  for (const auto &[name, type] : params().list())
+    types.push_back(type->resolve(a));
+  llvm::FunctionType *funcType = llvm::FunctionType::get(returnType().resolve(a), types, false);
 
   llvm::Function *func = a.module().getFunction(name());
   if (func) {
@@ -39,11 +37,9 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
 
   a.pushScope();
   auto argIt = func->arg_begin();
-  auto paramIt = params().begin();
-  while (paramIt != params().end()) {
-    a.declareVariable(*paramIt, argIt);
+  for (const auto &[name, _] : params().list()) {
+    a.declareVariable(name, argIt);
     ++argIt;
-    ++paramIt;
   }
   llvm::BasicBlock *block = llvm::BasicBlock::Create(a.context(), "entry", func);
   a.builder().SetInsertPoint(block);
@@ -56,5 +52,5 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
 
   if (verifyFunction(*func, &llvm::errs()))
     throw ParserError("Invalid LLVM IR for function");
-  a.optimizeFunction(func);
+  // a.optimizeFunction(func);
 }

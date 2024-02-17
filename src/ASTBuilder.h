@@ -2,6 +2,7 @@
 #define ASTBUILDER_H
 
 #include "Scope.h"
+
 #include <deque>
 #include <llvm/Analysis/CGSCCPassManager.h>
 #include <llvm/Analysis/LoopAnalysisManager.h>
