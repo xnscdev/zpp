@@ -1,8 +1,6 @@
 #include "Declaration.h"
 #include "ParserError.h"
 
-#include <llvm/IR/Verifier.h>
-
 using namespace zpp::ast;
 
 void FunctionDeclaration::codegen(ASTBuilder &a) const {
@@ -46,12 +44,12 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
   body().genStatements(a);
   a.popScope();
 
-  if (returnType().resolve(a) == llvm::Type::getVoidTy(a.context()))
-    a.builder().CreateRetVoid();
-  else if (!block->getTerminator())
-    throw ParserError("Missing return statement from function returning non-void");
+  if (!block->getTerminator()) {
+    if (returnType().resolve(a) == llvm::Type::getVoidTy(a.context()))
+      a.builder().CreateRetVoid();
+    else
+      throw ParserError("Missing return statement from function returning non-void");
+  }
 
-  if (verifyFunction(*func, &llvm::errs()))
-    throw ParserError("Invalid LLVM IR for function");
   a.optimizeFunction(func);
 }

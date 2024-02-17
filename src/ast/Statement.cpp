@@ -2,36 +2,42 @@
 
 using namespace zpp::ast;
 
-void ExpressionStatement::codegen(ASTBuilder &a) const {
-  expr().codegen(a);
+bool ExpressionStatement::codegen(ASTBuilder &a) const {
+  expr()._codegen(a);
+  return true;
 }
 
-void ReturnStatement::codegen(ASTBuilder &a) const {
+bool ReturnStatement::codegen(ASTBuilder &a) const {
   if (hasValue()) {
     llvm::Value *val = value().codegen(a);
     a.builder().CreateRet(val);
   } else {
     a.builder().CreateRetVoid();
   }
+  return false;
 }
 
 void StatementBlock::addStatement(std::unique_ptr<Statement> statement) {
   statements.push_back(std::move(statement));
 }
 
-void StatementBlock::codegen(ASTBuilder &a) const {
+bool StatementBlock::codegen(ASTBuilder &a) const {
   a.pushScope();
-  genStatements(a);
+  const bool shouldContinue = genStatements(a);
   a.popScope();
+  return shouldContinue;
 }
 
-void StatementBlock::genStatements(ASTBuilder &a) const {
+bool StatementBlock::genStatements(ASTBuilder &a) const {
   for (const auto &ptr : statements) {
-    ptr->codegen(a);
+    if (!ptr->codegen(a))
+      return false;
   }
+  return true;
 }
 
-void VariableDeclaration::codegen(ASTBuilder &a) const {
-  llvm::Value *val = hasValue() ? value().codegenNoVoid(a) : nullptr;
+bool VariableDeclaration::codegen(ASTBuilder &a) const {
+  llvm::Value *val = hasValue() ? value().codegen(a) : nullptr;
   a.declareVariable(name(), type().resolve(a), val);
+  return true;
 }
