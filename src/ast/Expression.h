@@ -13,6 +13,7 @@ public:
   virtual ~Expression() = default;
   Expression &operator=(const Expression &) = delete;
   virtual llvm::Value *codegen(ASTBuilder &a) const = 0;
+  virtual llvm::Value *lvalue(ASTBuilder &a) const;
 };
 
 class IntegerLiteral final : public Expression {
@@ -30,12 +31,13 @@ public:
   explicit Identifier(std::string name) : m_name(std::move(name)) {}
   [[nodiscard]] const std::string &name() const { return m_name; }
   llvm::Value *codegen(ASTBuilder &a) const override;
+  llvm::Value *lvalue(ASTBuilder &a) const override;
 
 private:
   std::string m_name;
 };
 
-enum class BinaryOperator { Add, Sub, Mul, Div };
+enum class BinaryOperator { Add, Sub, Mul, Div, Assign };
 
 class BinaryExpression final : public Expression {
 public:

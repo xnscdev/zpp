@@ -1,12 +1,13 @@
 #include "Scope.h"
 
-void zpp::Scope::declareVariable(const std::string &name, llvm::Value *value) {
-  variables[name] = value;
+void zpp::Scope::declareVariable(const std::string &name, llvm::Type *type, llvm::AllocaInst *alloca) {
+  variables[name] = std::make_pair(type, alloca);
 }
 
-llvm::Value *zpp::Scope::lookupVariable(const std::string &name) const {
+bool zpp::Scope::lookupVariable(const std::string &name, VariableInfo &info) const {
   const auto it = variables.find(name);
   if (it == variables.end())
-    return nullptr;
-  return it->second;
+    return false;
+  info = it->second;
+  return true;
 }

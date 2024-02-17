@@ -43,13 +43,20 @@ void zpp::ASTBuilder::popScope() {
 }
 
 void zpp::ASTBuilder::declareVariable(const std::string &name, llvm::Value *value) {
-  scopes.back().declareVariable(name, value);
+  llvm::Type *type = value->getType();
+  llvm::AllocaInst *alloca = builder().CreateAlloca(type);
+  builder().CreateStore(value, alloca);
+  scopes.back().declareVariable(name, type, alloca);
 }
 
-llvm::Value *zpp::ASTBuilder::getVariable(const std::string &name) const {
+llvm::Value *zpp::ASTBuilder::getVariable(const std::string &name, const bool pointer) const {
+  Scope::VariableInfo info;
   for (const auto &scope : std::ranges::reverse_view(scopes)) {
-    if (llvm::Value *val = scope.lookupVariable(name))
-      return val;
+    if (scope.lookupVariable(name, info)) {
+      if (pointer)
+        return info.second;
+      return builder().CreateLoad(info.first, info.second);
+    }
   }
   throw ParserError("Use of undeclared identifier: " + name);
 }

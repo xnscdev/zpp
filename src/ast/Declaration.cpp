@@ -36,21 +36,22 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
   }
 
   a.pushScope();
+  llvm::BasicBlock *block = llvm::BasicBlock::Create(a.context(), "entry", func);
+  a.builder().SetInsertPoint(block);
   auto argIt = func->arg_begin();
   for (const auto &[name, _] : params().list()) {
     a.declareVariable(name, argIt);
     ++argIt;
   }
-  llvm::BasicBlock *block = llvm::BasicBlock::Create(a.context(), "entry", func);
-  a.builder().SetInsertPoint(block);
   body().codegen(a);
   a.popScope();
 
-  // TODO Insert automatic return from void functions
-  if (!block->getTerminator())
+  if (returnType().resolve(a) == llvm::Type::getVoidTy(a.context()))
+    a.builder().CreateRetVoid();
+  else if (!block->getTerminator())
     throw ParserError("Missing return statement from function returning non-void");
 
   if (verifyFunction(*func, &llvm::errs()))
     throw ParserError("Invalid LLVM IR for function");
-  // a.optimizeFunction(func);
+  a.optimizeFunction(func);
 }

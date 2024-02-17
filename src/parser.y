@@ -31,10 +31,11 @@ class Scanner;
 %token END 0 "end of file"
 %token <std::string> ID
 %token <unsigned long> INT10
-%token PLUS MINUS STAR SLASH
+%token PLUS MINUS STAR SLASH EQUAL
 %token LPAREN RPAREN LBRACE RBRACE
 %token SEMI COMMA
-%token RETURN VERY LONG NOT AT ALL MEDIUM
+%token RETURN
+%token VOID VERY LONG NOT AT ALL MEDIUM
 %token UNKNOWN
 
 %locations
@@ -48,6 +49,7 @@ class Scanner;
 %type <std::unique_ptr<ast::ParameterList>> parameterList
 %type <unsigned int> longType
 
+%right EQUAL
 %left PLUS MINUS
 %left STAR SLASH
 
@@ -92,6 +94,7 @@ expression : expression PLUS expression { $$ = std::make_unique<ast::BinaryExpre
            | expression MINUS expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Sub); }
            | expression STAR expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Mul); }
            | expression SLASH expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Div); }
+           | expression EQUAL expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Assign); }
            | baseExpression { $$ = std::move($1); }
            ;
 
@@ -100,7 +103,8 @@ baseExpression : INT10 { $$ = std::make_unique<ast::IntegerLiteral>($1); }
                | LPAREN expression RPAREN { $$ = std::move($2); }
                ;
 
-type : NOT LONG AT ALL { $$ = std::make_unique<ast::IntegerType>(8); }
+type : VOID { $$ = std::make_unique<ast::VoidType>(); }
+     | NOT LONG AT ALL { $$ = std::make_unique<ast::IntegerType>(8); }
      | NOT VERY LONG { $$ = std::make_unique<ast::IntegerType>(16); }
      | MEDIUM LONG { $$ = std::make_unique<ast::IntegerType>(32); }
      | longType { $$ = std::make_unique<ast::IntegerType>($1); }

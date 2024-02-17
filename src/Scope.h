@@ -1,17 +1,19 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
-#include <map>
-#include <llvm/IR/Value.h>
+#include <llvm/IR/Instructions.h>
+#include <unordered_map>
 
 namespace zpp {
 class Scope {
 public:
-  void declareVariable(const std::string &name, llvm::Value *value);
-  [[nodiscard]] llvm::Value *lookupVariable(const std::string &name) const;
+  using VariableInfo = std::pair<llvm::Type *, llvm::AllocaInst *>;
+
+  void declareVariable(const std::string &name, llvm::Type *type, llvm::AllocaInst *alloca);
+  bool lookupVariable(const std::string &name, VariableInfo &info) const;
 
 private:
-  std::map<std::string, llvm::Value *> variables;
+  std::unordered_map<std::string, VariableInfo> variables;
 };
 }
 

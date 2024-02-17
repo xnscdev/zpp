@@ -15,6 +15,11 @@ public:
   [[nodiscard]] virtual llvm::Type *resolve(ASTBuilder &a) const = 0;
 };
 
+class VoidType final : public Type {
+public:
+  [[nodiscard]] llvm::Type *resolve(ASTBuilder &a) const override;
+};
+
 class IntegerType final : public Type {
 public:
   explicit IntegerType(const unsigned int size) : m_size(size) {}
