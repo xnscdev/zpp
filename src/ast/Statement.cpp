@@ -32,6 +32,6 @@ void StatementBlock::genStatements(ASTBuilder &a) const {
 }
 
 void VariableDeclaration::codegen(ASTBuilder &a) const {
-  llvm::Value *val = hasValue() ? value().codegen(a) : nullptr;
+  llvm::Value *val = hasValue() ? value().codegenNoVoid(a) : nullptr;
   a.declareVariable(name(), type().resolve(a), val);
 }

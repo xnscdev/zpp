@@ -44,9 +44,10 @@ class Scanner;
 %type <std::unique_ptr<ast::Declaration>> declaration functionDeclaration
 %type <std::unique_ptr<ast::StatementBlock>> statementList
 %type <std::unique_ptr<ast::Statement>> statement returnStatement variableDeclaration
-%type <std::unique_ptr<ast::Expression>> expression baseExpression
-%type <std::unique_ptr<ast::Type>> type
+%type <std::unique_ptr<ast::Expression>> expression baseExpression functionCall
+%type <std::unique_ptr<ast::Type>> type typeOrVoid
 %type <std::unique_ptr<ast::ParameterList>> parameterList
+%type <std::vector<std::unique_ptr<ast::Expression>>> argumentList
 %type <unsigned int> longType
 
 %right EQUAL
@@ -65,10 +66,10 @@ topLevel : %empty { $$ = std::make_unique<ast::Program>(); }
 declaration : functionDeclaration { $$ = std::move($1); }
             ;
 
-functionDeclaration : type ID LPAREN RPAREN SEMI { $$ = std::make_unique<ast::FunctionDeclaration>(std::move($1), $2, std::make_unique<ast::ParameterList>()); }
-                    | type ID LPAREN parameterList RPAREN SEMI { $$ = std::make_unique<ast::FunctionDeclaration>(std::move($1), $2, std::move($4)); }
-                    | type ID LPAREN RPAREN LBRACE statementList RBRACE { $$ = std::make_unique<ast::FunctionDefinition>(std::move($1), $2, std::make_unique<ast::ParameterList>(), std::move($6)); }
-                    | type ID LPAREN parameterList RPAREN LBRACE statementList RBRACE { $$ = std::make_unique<ast::FunctionDefinition>(std::move($1), $2, std::move($4), std::move($7)); }
+functionDeclaration : typeOrVoid ID LPAREN RPAREN SEMI { $$ = std::make_unique<ast::FunctionDeclaration>(std::move($1), $2, std::make_unique<ast::ParameterList>()); }
+                    | typeOrVoid ID LPAREN parameterList RPAREN SEMI { $$ = std::make_unique<ast::FunctionDeclaration>(std::move($1), $2, std::move($4)); }
+                    | typeOrVoid ID LPAREN RPAREN LBRACE statementList RBRACE { $$ = std::make_unique<ast::FunctionDefinition>(std::move($1), $2, std::make_unique<ast::ParameterList>(), std::move($6)); }
+                    | typeOrVoid ID LPAREN parameterList RPAREN LBRACE statementList RBRACE { $$ = std::make_unique<ast::FunctionDefinition>(std::move($1), $2, std::move($4), std::move($7)); }
                     ;
 
 parameterList : type { $$ = std::make_unique<ast::ParameterList>(std::string(), std::move($1)); }
@@ -106,14 +107,26 @@ expression : expression PLUS expression { $$ = std::make_unique<ast::BinaryExpre
 baseExpression : INT10 { $$ = std::make_unique<ast::IntegerLiteral>($1); }
                | ID { $$ = std::make_unique<ast::Identifier>($1); }
                | LPAREN expression RPAREN { $$ = std::move($2); }
+               | functionCall { $$ = std::move($1); }
                ;
 
-type : VOID { $$ = std::make_unique<ast::VoidType>(); }
-     | NOT LONG AT ALL { $$ = std::make_unique<ast::IntegerType>(8); }
+functionCall : ID LPAREN RPAREN { $$ = std::make_unique<ast::FunctionCall>($1, std::vector<std::unique_ptr<ast::Expression>>()); }
+             | ID LPAREN argumentList RPAREN { $$ = std::make_unique<ast::FunctionCall>($1, std::move($3)); }
+             ;
+
+argumentList : expression { $$ = std::vector<std::unique_ptr<ast::Expression>>(); $$.push_back(std::move($1)); }
+             | argumentList COMMA expression { $1.push_back(std::move($3)); $$ = std::move($1); }
+             ;
+
+type : NOT LONG AT ALL { $$ = std::make_unique<ast::IntegerType>(8); }
      | NOT VERY LONG { $$ = std::make_unique<ast::IntegerType>(16); }
      | MEDIUM LONG { $$ = std::make_unique<ast::IntegerType>(32); }
      | longType { $$ = std::make_unique<ast::IntegerType>($1); }
      ;
+
+typeOrVoid : type { $$ = std::move($1); }
+           | VOID { $$ = std::make_unique<ast::VoidType>(); }
+           ;
 
 longType : LONG { $$ = 64; }
          | VERY longType { $$ = $2 + 64; }

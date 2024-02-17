@@ -14,6 +14,7 @@ public:
   Expression &operator=(const Expression &) = delete;
   virtual llvm::Value *codegen(ASTBuilder &a) const = 0;
   virtual llvm::Value *lvalue(ASTBuilder &a) const;
+  llvm::Value *codegenNoVoid(ASTBuilder &a) const;
 };
 
 class IntegerLiteral final : public Expression {
@@ -53,6 +54,19 @@ private:
   std::unique_ptr<Expression> m_left;
   std::unique_ptr<Expression> m_right;
   BinaryOperator m_op;
+};
+
+class FunctionCall final : public Expression {
+public:
+  FunctionCall(std::string name, std::vector<std::unique_ptr<Expression>> args)
+      : m_name(std::move(name)), m_args(std::move(args)) {}
+  [[nodiscard]] const std::string &name() const { return m_name; }
+  [[nodiscard]] const std::vector<std::unique_ptr<Expression>> &args() const { return m_args; }
+  llvm::Value *codegen(ASTBuilder &a) const override;
+
+private:
+  std::string m_name;
+  std::vector<std::unique_ptr<Expression>> m_args;
 };
 }
 

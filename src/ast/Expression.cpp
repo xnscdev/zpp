@@ -4,7 +4,14 @@
 using namespace zpp::ast;
 
 llvm::Value *Expression::lvalue(ASTBuilder &a) const {
-  return codegen(a);
+  return codegenNoVoid(a);
+}
+
+llvm::Value *Expression::codegenNoVoid(ASTBuilder &a) const {
+  llvm::Value *value = codegen(a);
+  if (value->getType() == llvm::Type::getVoidTy(a.context()))
+    throw ParserError("Expression of void type is invalid here");
+  return value;
 }
 
 llvm::Value *IntegerLiteral::codegen(ASTBuilder &a) const {
@@ -20,8 +27,9 @@ llvm::Value *Identifier::lvalue(ASTBuilder &a) const {
 }
 
 llvm::Value *BinaryExpression::codegen(ASTBuilder &a) const {
-  llvm::Value *leftVal = op() == BinaryOperator::Assign ? left().lvalue(a) : left().codegen(a);
-  llvm::Value *rightVal = right().codegen(a);
+  llvm::Value *leftVal =
+      op() == BinaryOperator::Assign ? left().lvalue(a) : left().codegenNoVoid(a);
+  llvm::Value *rightVal = right().codegenNoVoid(a);
   switch (op()) {
   case BinaryOperator::Add:
     return a.builder().CreateAdd(leftVal, rightVal);
@@ -37,4 +45,14 @@ llvm::Value *BinaryExpression::codegen(ASTBuilder &a) const {
   default:
     throw ParserError("Invalid binary operation");
   }
+}
+
+llvm::Value *FunctionCall::codegen(ASTBuilder &a) const {
+  llvm::Function *func = a.module().getFunction(name());
+  if (!func)
+    throw ParserError("Function '" + name() + "' was not previously declared");
+  std::vector<llvm::Value *> values;
+  for (auto &arg : args())
+    values.push_back(arg->codegenNoVoid(a));
+  return a.builder().CreateCall(func->getFunctionType(), func, values);
 }
