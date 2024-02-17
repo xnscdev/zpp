@@ -29,6 +29,16 @@ public:
 private:
   unsigned int m_size;
 };
+
+class PointerType final : public Type {
+public:
+  explicit PointerType(std::unique_ptr<Type> type) : m_type(std::move(type)) {}
+  [[nodiscard]] const Type &type() const { return *m_type; }
+  [[nodiscard]] llvm::Type *resolve(ASTBuilder &a) const override;
+
+private:
+  std::unique_ptr<Type> m_type;
+};
 }
 
 #endif

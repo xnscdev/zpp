@@ -124,6 +124,7 @@ type : NOT LONG AT ALL { $$ = std::make_unique<ast::IntegerType>(8); }
      | NOT VERY LONG { $$ = std::make_unique<ast::IntegerType>(16); }
      | MEDIUM LONG { $$ = std::make_unique<ast::IntegerType>(32); }
      | longType { $$ = std::make_unique<ast::IntegerType>($1); }
+     | type STAR { $$ = std::make_unique<ast::PointerType>(std::move($1)); }
      ;
 
 typeOrVoid : type { $$ = std::move($1); }

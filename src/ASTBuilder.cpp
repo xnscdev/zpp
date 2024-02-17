@@ -44,6 +44,8 @@ void zpp::ASTBuilder::popScope() {
 
 void zpp::ASTBuilder::declareVariable(const std::string &name, llvm::Type *type,
                                       llvm::Value *value) {
+  if (name.empty())
+    return;
   if (scopes.back().hasVariable(name))
     throw ParserError("Variable '" + name + "' was already defined in this scope");
   llvm::AllocaInst *alloca = builder().CreateAlloca(type);
