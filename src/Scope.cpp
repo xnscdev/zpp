@@ -11,3 +11,7 @@ bool zpp::Scope::lookupVariable(const std::string &name, VariableInfo &info) con
   info = it->second;
   return true;
 }
+
+bool zpp::Scope::hasVariable(const std::string &name) const {
+  return variables.contains(name);
+}

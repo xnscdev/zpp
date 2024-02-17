@@ -11,6 +11,7 @@ public:
 
   void declareVariable(const std::string &name, llvm::Type *type, llvm::AllocaInst *alloca);
   bool lookupVariable(const std::string &name, VariableInfo &info) const;
+  [[nodiscard]] bool hasVariable(const std::string &name) const;
 
 private:
   std::unordered_map<std::string, VariableInfo> variables;

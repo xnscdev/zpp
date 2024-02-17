@@ -39,11 +39,11 @@ void FunctionDefinition::codegen(ASTBuilder &a) const {
   llvm::BasicBlock *block = llvm::BasicBlock::Create(a.context(), "entry", func);
   a.builder().SetInsertPoint(block);
   auto argIt = func->arg_begin();
-  for (const auto &[name, _] : params().list()) {
-    a.declareVariable(name, argIt);
+  for (const auto &[name, type] : params().list()) {
+    a.declareVariable(name, type->resolve(a), argIt);
     ++argIt;
   }
-  body().codegen(a);
+  body().genStatements(a);
   a.popScope();
 
   if (returnType().resolve(a) == llvm::Type::getVoidTy(a.context()))

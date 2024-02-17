@@ -19,7 +19,7 @@ public:
   [[nodiscard]] llvm::IRBuilder<> &builder() const { return *m_builder; }
   void pushScope();
   void popScope();
-  void declareVariable(const std::string &name, llvm::Value *value);
+  void declareVariable(const std::string &name, llvm::Type *type, llvm::Value *value);
   [[nodiscard]] llvm::Value *getVariable(const std::string &name, bool pointer) const;
   void optimizeFunction(llvm::Function *func) const;
 

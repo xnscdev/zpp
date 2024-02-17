@@ -43,7 +43,7 @@ class Scanner;
 %type <std::unique_ptr<ast::Program>> topLevel
 %type <std::unique_ptr<ast::Declaration>> declaration functionDeclaration
 %type <std::unique_ptr<ast::StatementBlock>> statementList
-%type <std::unique_ptr<ast::Statement>> statement returnStatement
+%type <std::unique_ptr<ast::Statement>> statement returnStatement variableDeclaration
 %type <std::unique_ptr<ast::Expression>> expression baseExpression
 %type <std::unique_ptr<ast::Type>> type
 %type <std::unique_ptr<ast::ParameterList>> parameterList
@@ -79,12 +79,17 @@ parameterList : type { $$ = std::make_unique<ast::ParameterList>(std::string(), 
 
 statement : expression SEMI { $$ = std::make_unique<ast::ExpressionStatement>(std::move($1)); }
           | returnStatement { $$ = std::move($1); }
+          | variableDeclaration { $$ = std::move($1); }
           | LBRACE statementList RBRACE { $$ = std::move($2); }
           ;
 
 returnStatement : RETURN SEMI { $$ = std::make_unique<ast::ReturnStatement>(nullptr); }
                 | RETURN expression SEMI { $$ = std::make_unique<ast::ReturnStatement>(std::move($2)); }
                 ;
+
+variableDeclaration : type ID SEMI { $$ = std::make_unique<ast::VariableDeclaration>(std::move($1), $2, nullptr); }
+                    | type ID EQUAL expression SEMI { $$ = std::make_unique<ast::VariableDeclaration>(std::move($1), $2, std::move($4)); }
+                    ;
 
 statementList : %empty { $$ = std::make_unique<ast::StatementBlock>(); }
               | statementList statement { $1->addStatement(std::move($2)); $$ = std::move($1); }

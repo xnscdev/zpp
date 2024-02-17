@@ -42,10 +42,13 @@ void zpp::ASTBuilder::popScope() {
   scopes.pop_back();
 }
 
-void zpp::ASTBuilder::declareVariable(const std::string &name, llvm::Value *value) {
-  llvm::Type *type = value->getType();
+void zpp::ASTBuilder::declareVariable(const std::string &name, llvm::Type *type,
+                                      llvm::Value *value) {
+  if (scopes.back().hasVariable(name))
+    throw ParserError("Variable '" + name + "' was already defined in this scope");
   llvm::AllocaInst *alloca = builder().CreateAlloca(type);
-  builder().CreateStore(value, alloca);
+  if (value)
+    builder().CreateStore(value, alloca);
   scopes.back().declareVariable(name, type, alloca);
 }
 
