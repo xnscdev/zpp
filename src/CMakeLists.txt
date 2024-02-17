@@ -27,6 +27,8 @@ add_executable(z++
         Driver.h
         Scope.cpp
         Scope.h
+        Options.cpp
+        Options.h
 )
 
 llvm_map_components_to_libnames(llvm_libs native nativecodegen orcjit)

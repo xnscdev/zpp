@@ -69,3 +69,7 @@ llvm::Value *zpp::ASTBuilder::getVariable(const std::string &name, const bool po
 void zpp::ASTBuilder::optimizeFunction(llvm::Function *func) const {
   fpm->run(*func, *fam);
 }
+
+llvm::orc::ThreadSafeModule zpp::ASTBuilder::exportModule() {
+  return {std::move(m_module), std::move(m_context)};
+}

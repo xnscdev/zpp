@@ -9,7 +9,8 @@ namespace zpp {
 class Driver {
 public:
   Driver() : scanner(nullptr), parser(nullptr) {}
-  void parse(const std::string &filename);
+  void jitExecute(const std::string &filename);
+  ASTBuilder parse(const std::string &filename);
 
 private:
   std::unique_ptr<Scanner> scanner;

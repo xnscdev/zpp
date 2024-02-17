@@ -6,6 +6,7 @@
 #include <deque>
 #include <llvm/Analysis/CGSCCPassManager.h>
 #include <llvm/Analysis/LoopAnalysisManager.h>
+#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/Passes/StandardInstrumentations.h>
@@ -22,6 +23,7 @@ public:
   void declareVariable(const std::string &name, llvm::Type *type, llvm::Value *value);
   [[nodiscard]] llvm::Value *getVariable(const std::string &name, bool pointer) const;
   void optimizeFunction(llvm::Function *func) const;
+  [[nodiscard]] llvm::orc::ThreadSafeModule exportModule();
 
 private:
   std::unique_ptr<llvm::LLVMContext> m_context;
