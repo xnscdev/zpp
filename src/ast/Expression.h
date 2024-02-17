@@ -30,6 +30,16 @@ private:
   unsigned char m_radix;
 };
 
+class StringLiteral final : public Expression {
+public:
+  explicit StringLiteral(const std::string &text);
+  [[nodiscard]] const std::string &text() const { return m_text; }
+  llvm::Value *_codegen(ASTBuilder &a) const override;
+
+private:
+  std::string m_text;
+};
+
 class Identifier final : public Expression {
 public:
   explicit Identifier(std::string name) : m_name(std::move(name)) {}

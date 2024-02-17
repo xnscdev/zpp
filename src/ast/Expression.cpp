@@ -19,8 +19,6 @@ llvm::Value *Expression::codegen(ASTBuilder &a) const {
 llvm::Value *IntegerLiteral::_codegen(ASTBuilder &a) const {
   int count = 0;
   std::string string = value();
-  if (radix() == 16)
-    string.erase(0, 2);
   for (auto it = string.rbegin(); it != string.rend(); ++it) {
     if (std::tolower(*it) == 'l') {
       count++;
@@ -33,6 +31,35 @@ llvm::Value *IntegerLiteral::_codegen(ASTBuilder &a) const {
   bits += 64 * std::max(count - 3, 0);
   return llvm::ConstantInt::get(llvm::IntegerType::get(a.context(), bits),
                                 llvm::APInt(bits, string, radix()));
+}
+
+StringLiteral::StringLiteral(const std::string &text) {
+  std::size_t i = 0;
+  while (i < text.size()) {
+    if (text[i] == '\\' && i + 1 < text.size()) {
+      switch (text[i + 1]) {
+      case 'n':
+        m_text += '\n';
+        break;
+      case 't':
+        m_text += '\t';
+        break;
+      case 'r':
+        m_text += '\r';
+        break;
+      default:
+        m_text += text[i + 1];
+      }
+      i += 2;
+    } else {
+      m_text += text[i];
+      ++i;
+    }
+  }
+}
+
+llvm::Value *StringLiteral::_codegen(ASTBuilder &a) const {
+  return a.builder().CreateGlobalStringPtr(text());
 }
 
 llvm::Value *Identifier::_codegen(ASTBuilder &a) const {

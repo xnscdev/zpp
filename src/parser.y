@@ -31,6 +31,7 @@ class Scanner;
 %token END 0 "end of file"
 %token <std::string> ID
 %token <std::string> INT10 INT8 INT16
+%token <std::string> STR
 %token PLUS MINUS STAR SLASH EQUAL
 %token LPAREN RPAREN LBRACE RBRACE
 %token SEMI COMMA ELLIPSIS
@@ -111,6 +112,7 @@ expression : expression PLUS expression { $$ = std::make_unique<ast::BinaryExpre
 baseExpression : INT10 { $$ = std::make_unique<ast::IntegerLiteral>($1, 10); }
                | INT8 { $$ = std::make_unique<ast::IntegerLiteral>($1, 8); }
                | INT16 { $$ = std::make_unique<ast::IntegerLiteral>($1, 16); }
+               | STR { $$ = std::make_unique<ast::StringLiteral>($1); }
                | ID { $$ = std::make_unique<ast::Identifier>($1); }
                | LPAREN expression RPAREN { $$ = std::move($2); }
                | functionCall { $$ = std::move($1); }
