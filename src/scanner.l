@@ -39,6 +39,7 @@ yylval = lval;
 "}"         return token::RBRACE;
 ";"         return token::SEMI;
 ","         return token::COMMA;
+"..."       return token::ELLIPSIS;
 "return"    return token::RETURN;
 "void"      return token::VOID;
 "very"      return token::VERY;
@@ -48,7 +49,9 @@ yylval = lval;
 "all"       return token::ALL;
 "medium"    return token::MEDIUM;
 [a-zA-Z_][a-zA-Z0-9_]*      yylval->emplace<std::string>(yytext); return token::ID;
-[1-9][0-9]*                 yylval->emplace<unsigned long>(std::stoul(yytext)); return token::INT10;
+[1-9][0-9]*[lL]*            yylval->emplace<std::string>(yytext); return token::INT10;
+0[0-7]*[lL]*                yylval->emplace<std::string>(yytext); return token::INT8;
+0[xX][0-9a-fA-F]+[lL]*      yylval->emplace<std::string>(yytext); return token::INT16;
 .           return token::UNKNOWN;
 
 %%

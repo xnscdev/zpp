@@ -1,4 +1,5 @@
 #include "Statement.h"
+#include "ParserError.h"
 
 using namespace zpp::ast;
 
@@ -38,6 +39,9 @@ bool StatementBlock::genStatements(ASTBuilder &a) const {
 
 bool VariableDeclaration::codegen(ASTBuilder &a) const {
   llvm::Value *val = hasValue() ? value().codegen(a) : nullptr;
-  a.declareVariable(name(), type().resolve(a), val);
+  llvm::Type *t = type().resolve(a);
+  if (val && val->getType() != t)
+    throw ParserError("Variable value must match type");
+  a.declareVariable(name(), t, val);
   return true;
 }

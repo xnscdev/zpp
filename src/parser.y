@@ -30,10 +30,10 @@ class Scanner;
 
 %token END 0 "end of file"
 %token <std::string> ID
-%token <unsigned long> INT10
+%token <std::string> INT10 INT8 INT16
 %token PLUS MINUS STAR SLASH EQUAL
 %token LPAREN RPAREN LBRACE RBRACE
-%token SEMI COMMA
+%token SEMI COMMA ELLIPSIS
 %token RETURN
 %token VOID VERY LONG NOT AT ALL MEDIUM
 %token UNKNOWN
@@ -100,11 +100,13 @@ expression : expression PLUS expression { $$ = std::make_unique<ast::BinaryExpre
            | expression MINUS expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Sub); }
            | expression STAR expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Mul); }
            | expression SLASH expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Div); }
-           | expression EQUAL expression { $$ = std::make_unique<ast::BinaryExpression>(std::move($1), std::move($3), ast::BinaryOperator::Assign); }
+           | expression EQUAL expression { $$ = std::make_unique<ast::AssignExpression>(std::move($1), std::move($3), ast::AssignOperator::Normal); }
            | baseExpression { $$ = std::move($1); }
            ;
 
-baseExpression : INT10 { $$ = std::make_unique<ast::IntegerLiteral>($1); }
+baseExpression : INT10 { $$ = std::make_unique<ast::IntegerLiteral>($1, 10); }
+               | INT8 { $$ = std::make_unique<ast::IntegerLiteral>($1, 8); }
+               | INT16 { $$ = std::make_unique<ast::IntegerLiteral>($1, 16); }
                | ID { $$ = std::make_unique<ast::Identifier>($1); }
                | LPAREN expression RPAREN { $$ = std::move($2); }
                | functionCall { $$ = std::move($1); }

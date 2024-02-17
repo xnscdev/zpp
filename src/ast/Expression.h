@@ -19,12 +19,15 @@ public:
 
 class IntegerLiteral final : public Expression {
 public:
-  explicit IntegerLiteral(const unsigned long value) : m_value(value) {}
-  [[nodiscard]] unsigned long value() const { return m_value; }
+  IntegerLiteral(std::string value, const unsigned char radix)
+      : m_value(std::move(value)), m_radix(radix) {}
+  [[nodiscard]] const std::string &value() const { return m_value; }
+  [[nodiscard]] unsigned char radix() const { return m_radix; }
   llvm::Value *_codegen(ASTBuilder &a) const override;
 
 private:
-  unsigned long m_value;
+  std::string m_value;
+  unsigned char m_radix;
 };
 
 class Identifier final : public Expression {
@@ -38,7 +41,7 @@ private:
   std::string m_name;
 };
 
-enum class BinaryOperator { Add, Sub, Mul, Div, Assign };
+enum class BinaryOperator { Add, Sub, Mul, Div };
 
 class BinaryExpression final : public Expression {
 public:
@@ -54,6 +57,24 @@ private:
   std::unique_ptr<Expression> m_left;
   std::unique_ptr<Expression> m_right;
   BinaryOperator m_op;
+};
+
+enum class AssignOperator { Normal };
+
+class AssignExpression final : public Expression {
+public:
+  AssignExpression(std::unique_ptr<Expression> left, std::unique_ptr<Expression> right,
+                   const AssignOperator op)
+      : m_left(std::move(left)), m_right(std::move(right)), m_op(op) {}
+  [[nodiscard]] const Expression &left() const { return *m_left; }
+  [[nodiscard]] const Expression &right() const { return *m_right; }
+  [[nodiscard]] AssignOperator op() const { return m_op; }
+  llvm::Value *_codegen(ASTBuilder &a) const override;
+
+private:
+  std::unique_ptr<Expression> m_left;
+  std::unique_ptr<Expression> m_right;
+  AssignOperator m_op;
 };
 
 class FunctionCall final : public Expression {

@@ -1,5 +1,7 @@
 #include "Expression.h"
+
 #include "ParserError.h"
+#include <ranges>
 
 using namespace zpp::ast;
 
@@ -15,7 +17,22 @@ llvm::Value *Expression::codegen(ASTBuilder &a) const {
 }
 
 llvm::Value *IntegerLiteral::_codegen(ASTBuilder &a) const {
-  return llvm::ConstantInt::get(llvm::Type::getInt64Ty(a.context()), llvm::APInt(64, value()));
+  int count = 0;
+  std::string string = value();
+  if (radix() == 16)
+    string.erase(0, 2);
+  for (auto it = string.rbegin(); it != string.rend(); ++it) {
+    if (std::tolower(*it) == 'l') {
+      count++;
+    } else {
+      string.erase(it.base(), string.end());
+      break;
+    }
+  }
+  unsigned int bits = 8 << std::min(count, 3);
+  bits += 64 * std::max(count - 3, 0);
+  return llvm::ConstantInt::get(llvm::IntegerType::get(a.context(), bits),
+                                llvm::APInt(bits, string, radix()));
 }
 
 llvm::Value *Identifier::_codegen(ASTBuilder &a) const {
@@ -27,8 +44,10 @@ llvm::Value *Identifier::lvalue(ASTBuilder &a) const {
 }
 
 llvm::Value *BinaryExpression::_codegen(ASTBuilder &a) const {
-  llvm::Value *leftVal = op() == BinaryOperator::Assign ? left().lvalue(a) : left().codegen(a);
+  llvm::Value *leftVal = left().codegen(a);
   llvm::Value *rightVal = right().codegen(a);
+  if (leftVal->getType() != rightVal->getType())
+    throw ParserError("Operands of binary expression must have same type");
   switch (op()) {
   case BinaryOperator::Add:
     return a.builder().CreateAdd(leftVal, rightVal);
@@ -38,11 +57,22 @@ llvm::Value *BinaryExpression::_codegen(ASTBuilder &a) const {
     return a.builder().CreateMul(leftVal, rightVal);
   case BinaryOperator::Div:
     return a.builder().CreateSDiv(leftVal, rightVal);
-  case BinaryOperator::Assign:
+  default:
+    throw ParserError("Invalid binary operation");
+  }
+}
+
+llvm::Value *AssignExpression::_codegen(ASTBuilder &a) const {
+  llvm::Value *leftVal = left().lvalue(a);
+  llvm::Value *rightVal = right().codegen(a);
+  if (leftVal->getType() != rightVal->getType()->getPointerTo())
+    throw ParserError("Operands of assignment expression must have same type");
+  switch (op()) {
+  case AssignOperator::Normal:
     a.builder().CreateStore(rightVal, leftVal);
     return rightVal;
   default:
-    throw ParserError("Invalid binary operation");
+    throw ParserError("Invalid assignment operation");
   }
 }
 
