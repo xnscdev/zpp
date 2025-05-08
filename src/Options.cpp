@@ -4,7 +4,8 @@
 zpp::Options zpp::Options::s_instance;
 
 void zpp::Options::parseArgs(const std::vector<std::string> &args) {
-  for (const auto &arg : args) {
+  for (int i = 1; i < args.size(); i++) {
+    const std::string &arg = args[i];
     if (arg.empty())
       continue;
     if (arg == "-j" || arg == "--jit")
